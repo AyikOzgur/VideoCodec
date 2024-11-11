@@ -68,7 +68,7 @@ public:
 private:
 
     /// init flag
-    bool m_init;
+    bool m_init{false};
     /// x264 encoder parameters
     x264_param_t m_param;
     x264_picture_t m_picIn;

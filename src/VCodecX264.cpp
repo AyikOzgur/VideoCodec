@@ -32,9 +32,10 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         m_param.b_vfr_input = 0;
         m_param.b_repeat_headers = 1;
         m_param.b_annexb = 1;
+        m_param.rc.i_bitrate = 10000000; // 10 Mbps
 
-        // Appy profile
-        if (x264_param_apply_profile(&m_param, "baseline") < 0)
+        // Apply profile
+        if (x264_param_apply_profile(&m_param, "high") < 0)
         {
             std::cout << "x264_param_apply_profile failed" << std::endl;
             return false;
@@ -53,8 +54,12 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         m_init = true;
     }
 
-    // Copy frame data
-    memcpy(m_picIn.img.plane[0], src.data, src.size);
+    // Copy Y plane
+    memcpy(m_picIn.img.plane[0], src.data, src.width * src.height);
+    // Copy U plane
+    memcpy(m_picIn.img.plane[1], src.data + src.width * src.height, src.width * src.height / 4);
+    // Copy V plane
+    memcpy(m_picIn.img.plane[2], src.data + src.width * src.height * 5 / 4, src.width * src.height / 4);
 
     // Staring time
     auto start = std::chrono::high_resolution_clock::now();
@@ -77,8 +82,14 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
     // Print frame size
     std::cout << "Frame size: " << i_frame_size << "  Duration(ms): " << duration.count() * 1000 << std::endl;
 
-    // Copy frame data
-    memcpy(dst.data, m_picOut.img.plane[0], i_frame_size);
+    // Copy NAL data to destination frame
+    int offset = 0;
+    for (int i = 0; i < i_frame; ++i)
+    {
+        memcpy(dst.data + offset, nal[i].p_payload, nal[i].i_payload);
+        offset += nal[i].i_payload;
+    }
+    dst.size = offset; // Set correct size for the encoded frame
 
     return true;
 }

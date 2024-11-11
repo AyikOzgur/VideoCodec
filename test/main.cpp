@@ -1,6 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "VCodecX264.h"
+#include <fstream>
 
 
 int main (int argc, char *argv[])
@@ -27,15 +28,21 @@ int main (int argc, char *argv[])
     // Create x264 codec
     VCodecX264 codec;
 
+    std::ofstream outputFile("encoded_video.h264", std::ios::binary);
+    if (!outputFile.is_open())
+    {
+        std::cerr << "Failed to open output file for writing!" << std::endl;
+        return -1;
+    }
+
     while (true)
     {
         // Read the frame
         cap >> inputFrame;
         if (inputFrame.empty())
         {
-            // Restart the video
-            cap.set(cv::CAP_PROP_POS_FRAMES, 0);
-            continue;
+            // End of video
+            break;
         }
 
         // Convert the frame to YUV420
@@ -46,5 +53,20 @@ int main (int argc, char *argv[])
 
         // Encode the frame
         codec.transcode(YU12Frame, h264Frame);
+
+        if (outputFile.is_open())
+        {
+            outputFile.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
+        }
+        else
+        {
+            std::cerr << "Failed to open output file for writing!" << std::endl;
+        }
     }
+
+    // Release the video file
+    cap.release();
+
+    // Close the output file
+    outputFile.close();
 }
