@@ -7,7 +7,7 @@
 int main (int argc, char *argv[])
 {
     // Open the video file
-    cv::VideoCapture cap("test.mp4");
+    cv::VideoCapture cap("../../test/test.mp4");
     if (!cap.isOpened())
     {
         std::cerr << "Error! Unable to open video file\n";

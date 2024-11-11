@@ -33,9 +33,6 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         m_param.b_repeat_headers = 1;
         m_param.b_annexb = 1;
 
-        m_param.rc.i_rc_method = X264_RC_ABR; // Average Bitrate mode
-        m_param.rc.i_bitrate = 10000000; // 10 Mbps
-
         // Set GOP size
         m_param.i_keyint_max = 30;
         // Set frame rate
@@ -90,7 +87,7 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
     std::chrono::duration<double> duration = end - start;
 
     // Print frame size
-    std::cout << "Frame size: " << i_frame_size << "  Duration(ms): " << duration.count() * 1000 << std::endl;
+    //std::cout << "Frame size: " << i_frame_size << "  Duration(ms): " << duration.count() * 1000 << std::endl;
     //std::cout << "Number of frames: " << i_frame << std::endl;
 
     // Copy NAL data to destination frame
