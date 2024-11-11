@@ -32,10 +32,20 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         m_param.b_vfr_input = 0;
         m_param.b_repeat_headers = 1;
         m_param.b_annexb = 1;
+
+        m_param.rc.i_rc_method = X264_RC_ABR; // Average Bitrate mode
         m_param.rc.i_bitrate = 10000000; // 10 Mbps
 
+        // Set GOP size
+        m_param.i_keyint_max = 30;
+        // Set frame rate
+        m_param.i_fps_num = 30;
+
+        // Set number of threads
+        m_param.i_threads = 1;
+
         // Apply profile
-        if (x264_param_apply_profile(&m_param, "high") < 0)
+        if (x264_param_apply_profile(&m_param, "baseline") < 0)
         {
             std::cout << "x264_param_apply_profile failed" << std::endl;
             return false;
@@ -81,6 +91,7 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
 
     // Print frame size
     std::cout << "Frame size: " << i_frame_size << "  Duration(ms): " << duration.count() * 1000 << std::endl;
+    //std::cout << "Number of frames: " << i_frame << std::endl;
 
     // Copy NAL data to destination frame
     int offset = 0;
@@ -101,7 +112,7 @@ bool VCodecX264::setParam(cr::video::VCodecParam id, float value)
 
 float VCodecX264::getParam(cr::video::VCodecParam id)
 {
-    return -1;
+    return -1.0f;
 }
 
 bool VCodecX264::executeCommand(cr::video::VCodecCommand cmd)
