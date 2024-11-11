@@ -45,6 +45,9 @@ endif()
 ################################################################################
 target_link_libraries (${PROJECT_NAME} VCodecX264)
 
+find_package(OpenCV REQUIRED)
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+
 
 
 ################################################################################
