@@ -1,0 +1,3 @@
+[submodule "3rdparty/VCodec"]
+	path = 3rdparty/VCodec
+	url = git@github.com:ConstantRobotics-Ltd/VCodec.git
