@@ -9,7 +9,11 @@ VCodecX264::VCodecX264()
 
 VCodecX264::~VCodecX264()
 {
-
+    if (m_init)
+    {
+        x264_picture_clean(&m_picIn);
+        x264_encoder_close(m_encoder);
+    }
 }
 
 std::string VCodecX264::getVersion()
@@ -39,7 +43,7 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         m_param.i_fps_num = 30;
 
         // Set number of threads
-        m_param.i_threads = 4;
+        m_param.i_threads = 1;
 
         // Apply profile
         if (x264_param_apply_profile(&m_param, "baseline") < 0)
