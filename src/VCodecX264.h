@@ -73,9 +73,5 @@ private:
     x264_param_t m_param;
     x264_picture_t m_picIn;
     x264_picture_t m_picOut;
-    x264_t *h;
-    int i_frame = 0;
-    int i_frame_size;
-    x264_nal_t *nal;
-    int i_nal;
+    x264_t *m_encoder;
 };

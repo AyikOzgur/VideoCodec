@@ -56,7 +56,7 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         }
 
         // Open encoder
-        h = x264_encoder_open(&m_param);
+        m_encoder = x264_encoder_open(&m_param);
 
         m_init = true;
     }
@@ -71,9 +71,10 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
     // Staring time
     auto start = std::chrono::high_resolution_clock::now();
 
+    int i_frame = 0; // Number of NAL units
     // Encode frame
     x264_nal_t *nal;
-    int i_frame_size = x264_encoder_encode(h, &nal, &i_frame, &m_picIn, &m_picOut);
+    int i_frame_size = x264_encoder_encode(m_encoder, &nal, &i_frame, &m_picIn, &m_picOut);
     if (i_frame_size < 0)
     {
         std::cout << "x264_encoder_encode failed" << std::endl;
@@ -85,10 +86,6 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
 
     // Calculate duration
     std::chrono::duration<double> duration = end - start;
-
-    // Print frame size
-    //std::cout << "Frame size: " << i_frame_size << "  Duration(ms): " << duration.count() * 1000 << std::endl;
-    //std::cout << "Number of frames: " << i_frame << std::endl;
 
     // Copy NAL data to destination frame
     int offset = 0;
