@@ -39,7 +39,7 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         m_param.i_fps_num = 30;
 
         // Set number of threads
-        m_param.i_threads = 1;
+        m_param.i_threads = 2;
 
         // Apply profile
         if (x264_param_apply_profile(&m_param, "baseline") < 0)
