@@ -87,6 +87,9 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
     // Calculate duration
     std::chrono::duration<double> duration = end - start;
 
+    // Print duration in milliseconds
+    std::cout << "Duration: " << duration.count() * 1000 << " ms" << std::endl;
+
     // Copy NAL data to destination frame
     int offset = 0;
     for (int i = 0; i < i_frame; ++i)
