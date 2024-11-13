@@ -33,14 +33,14 @@ int main (int argc, char *argv[])
     std::ofstream outputFileH264("encoded_video.h264", std::ios::binary);
     if (!outputFileH264.is_open())
     {
-        std::cerr << "Failed to open output file for writing!" << std::endl;
+        std::cerr << "Failed to open output file of h264 for writing!" << std::endl;
         return -1;
     }
 
     std::ofstream outputFileH265("encoded_video.h265", std::ios::binary);
     if (!outputFileH265.is_open())
     {
-        std::cerr << "Failed to open output file for writing!" << std::endl;
+        std::cerr << "Failed to open output file of h265 for writing!" << std::endl;
         return -1;
     }
 
@@ -64,23 +64,9 @@ int main (int argc, char *argv[])
         h264Codec.transcode(YU12Frame, h264Frame);
         h265Codec.transcode(YU12Frame, h265Frame);
 
-        if (outputFileH264.is_open())
-        {
-            outputFileH264.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
-        }
-        else
-        {
-            std::cerr << "Failed to open output file for writing!" << std::endl;
-        }
+        outputFileH264.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
 
-        if (outputFileH265.is_open())
-        {
-            outputFileH265.write(reinterpret_cast<char*>(h265Frame.data), h265Frame.size);
-        }
-        else
-        {
-            std::cerr << "Failed to open output file for writing!" << std::endl;
-        }
+        outputFileH265.write(reinterpret_cast<char*>(h265Frame.data), h265Frame.size);
     }
 
     // Release the video file
@@ -88,4 +74,5 @@ int main (int argc, char *argv[])
 
     // Close the output file
     outputFileH264.close();
+    outputFileH265.close();
 }
