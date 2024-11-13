@@ -22,13 +22,17 @@ int main (int argc, char *argv[])
     // Frames 
     cv::Mat inputFrame(height, width, CV_8UC3);
     cv::Mat YUV420Frame(height, width, CV_8UC3);
+    cv::Mat rgbFrame(height, width, CV_8UC3);
     cr::video::Frame YU12Frame(width, height, cr::video::Fourcc::YU12);
     cr::video::Frame h264Frame(width, height, cr::video::Fourcc::H264);
     cr::video::Frame h265Frame(width, height, cr::video::Fourcc::HEVC);
+    cr::video::Frame rgb24Frame(width, height, cr::video::Fourcc::RGB24);
+    cr::video::Frame jpegFrame(width, height, cr::video::Fourcc::JPEG);
 
     // Create codecs
     VCodecX264 h264Codec;
     VCodecX264 h265Codec;
+    VCodecX264 jpegCodec;
 
     std::ofstream outputFileH264("encoded_video.h264", std::ios::binary);
     if (!outputFileH264.is_open())
@@ -44,6 +48,13 @@ int main (int argc, char *argv[])
         return -1;
     }
 
+    std::ofstream outputFileJpeg("encoded_video.mjpeg", std::ios::binary);
+    if (!outputFileJpeg.is_open())
+    {
+        std::cerr << "Failed to open output file of jpeg for writing!" << std::endl;
+        return -1;
+    }
+
     while (true)
     {
         // Read the frame
@@ -56,9 +67,11 @@ int main (int argc, char *argv[])
 
         // Convert the frame to YUV420
         cv::cvtColor(inputFrame, YUV420Frame, cv::COLOR_BGR2YUV_I420);
+        cv::cvtColor(inputFrame, rgbFrame, cv::COLOR_BGR2RGB);
 
         // Copy the frame data
         memcpy(YU12Frame.data, YUV420Frame.data, YUV420Frame.total() * YUV420Frame.elemSize());
+        memcpy(rgb24Frame.data, rgbFrame.data, rgbFrame.total() * rgbFrame.elemSize());
 
         auto start = std::chrono::high_resolution_clock::now();
         h264Codec.transcode(YU12Frame, h264Frame);
@@ -70,11 +83,22 @@ int main (int argc, char *argv[])
         h265Codec.transcode(YU12Frame, h265Frame);
         end = std::chrono::high_resolution_clock::now();
 
-        std::cout << "H265 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+        std::cout << "H265 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  | ";
+
+        start = std::chrono::high_resolution_clock::now();
+        jpegCodec.transcode(rgb24Frame, jpegFrame);
+        end = std::chrono::high_resolution_clock::now();
+
+        std::cout << "JPEG encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+
+        // Print the encoded frame sizes
+        std::cout << "H264 frame size: " << h264Frame.size << " bytes | ";
+        std::cout << "H265 frame size: " << h265Frame.size << " bytes | ";
+        std::cout << "JPEG frame size: " << jpegFrame.size << " bytes" << std::endl;
 
         outputFileH264.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
-
         outputFileH265.write(reinterpret_cast<char*>(h265Frame.data), h265Frame.size);
+        outputFileJpeg.write(reinterpret_cast<char*>(jpegFrame.data), jpegFrame.size);
     }
 
     // Release the video file
@@ -83,4 +107,5 @@ int main (int argc, char *argv[])
     // Close the output file
     outputFileH264.close();
     outputFileH265.close();
+    outputFileJpeg.close();
 }

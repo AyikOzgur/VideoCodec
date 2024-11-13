@@ -26,6 +26,11 @@ VCodecX264::~VCodecX264()
             delete[] m_h265InternalBuffer;
             m_h265InternalBuffer = nullptr;
             break;
+        case cr::video::Fourcc::JPEG:
+            delete[] jpeg_buffer;
+            jpeg_buffer = nullptr;
+            jpeg_destroy_compress(&cinfo);
+            break;
         default:
             break;
         }
@@ -40,12 +45,34 @@ std::string VCodecX264::getVersion()
 bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
 {
     // Check of input frame is valid and destination frame has correct pixel format.
-    if (src.fourcc != cr::video::Fourcc::YU12 || (dst.fourcc != cr::video::Fourcc::H264 && dst.fourcc != cr::video::Fourcc::HEVC) ||
-            src.size <= 0 || src.width <= 0 || src.height <= 0 || src.data == nullptr)
+    if (dst.fourcc != cr::video::Fourcc::H264 && dst.fourcc != cr::video::Fourcc::HEVC && dst.fourcc != cr::video::Fourcc::JPEG)
     {
         std::cout << "Invalid pixel format" << std::endl;
         return false;
     }
+
+    // Check if input frame is valid
+    switch (dst.fourcc)
+    {
+    case cr::video::Fourcc::H264:
+    case cr::video::Fourcc::HEVC:
+        if (src.fourcc != cr::video::Fourcc::YU12)
+        {
+            std::cout << "Invalid pixel format" << std::endl;
+            return false;
+        }
+        break;
+    case cr::video::Fourcc::JPEG:
+        if (src.fourcc != cr::video::Fourcc::RGB24)
+        {
+            std::cout << "Invalid pixel format" << std::endl;
+            return false;
+        }
+        break;
+    default:
+        return false;
+    }
+
 
     // Check if destination frame has enough memory
     if (dst.width != src.width || dst.height != src.height)
@@ -58,6 +85,9 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
             break;
         case cr::video::Fourcc::HEVC:
             dst = cr::video::Frame(src.width, src.height, cr::video::Fourcc::HEVC);
+            break;
+        case cr::video::Fourcc::JPEG:
+            dst = cr::video::Frame(src.width, src.height, cr::video::Fourcc::JPEG);
             break;
         default:
             return false;
@@ -76,6 +106,12 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
             break;
         case cr::video::Fourcc::HEVC:
             if (!initH265Encoder(src.width, src.height))
+            {
+                return false;
+            }
+            break;
+        case cr::video::Fourcc::JPEG:
+            if (!initJpegEncoder(src.width, src.height))
             {
                 return false;
             }
@@ -101,6 +137,12 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         break;
     case cr::video::Fourcc::HEVC:
         if (!encodeH265Frame(src, dst))
+        {
+            return false;
+        }
+        break;
+    case cr::video::Fourcc::JPEG:
+        if (!encodeJpegFrame(src, dst))
         {
             return false;
         }
@@ -292,6 +334,58 @@ bool VCodecX264::encodeH265Frame(cr::video::Frame& src, cr::video::Frame& dst)
         offset += nal[i].sizeBytes;
     }
     dst.size = offset; // Set correct size for the encoded frame
+
+    return true;
+}
+
+bool VCodecX264::initJpegEncoder(int width, int height)
+{
+    // Check if it is already initialized and release resources
+    if (jpeg_buffer != nullptr)
+    {
+        delete[] jpeg_buffer;
+        jpeg_buffer = nullptr;
+        jpeg_destroy_compress(&cinfo);
+    }
+
+    // Allocate memory for the JPEG buffer
+    jpeg_buffer = new unsigned char[width * height * 3];
+
+    // Initialize JPEG compressor
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_compress(&cinfo);
+    cinfo.image_width = width;
+    cinfo.image_height = height;
+    cinfo.input_components = 3;
+    cinfo.in_color_space = JCS_RGB;
+    jpeg_set_defaults(&cinfo);
+    jpeg_set_quality(&cinfo, 100, TRUE);
+
+    return true;
+}
+
+bool VCodecX264::encodeJpegFrame(cr::video::Frame& src, cr::video::Frame& dst)
+{
+    // Set destination buffer
+    jpeg_mem_dest(&cinfo, &jpeg_buffer, &jpeg_size);
+
+    // Start compression
+    jpeg_start_compress(&cinfo, TRUE);
+
+    // Write scanlines
+    JSAMPROW row_pointer[1];
+    while (cinfo.next_scanline < cinfo.image_height)
+    {
+        row_pointer[0] = &src.data[cinfo.next_scanline * src.width * 3];
+        jpeg_write_scanlines(&cinfo, row_pointer, 1);
+    }
+
+    // Finish compression
+    jpeg_finish_compress(&cinfo);
+
+    // Copy JPEG data to destination frame
+    memcpy(dst.data, jpeg_buffer, jpeg_size);
+    dst.size = jpeg_size;
 
     return true;
 }

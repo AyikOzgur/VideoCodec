@@ -56,3 +56,4 @@ target_link_libraries(${PROJECT_NAME} VCodec)
 
 target_link_libraries(${PROJECT_NAME} x264)
 target_link_libraries(${PROJECT_NAME} x265)
+target_link_libraries(${PROJECT_NAME} jpeg)
