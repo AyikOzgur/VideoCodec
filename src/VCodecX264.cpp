@@ -23,14 +23,12 @@ VCodecX264::~VCodecX264()
             m_h265PicIn = nullptr;
             x265_encoder_close(m_h265Encoder);
             m_h265Encoder = nullptr;
+            delete[] m_h265InternalBuffer;
+            m_h265InternalBuffer = nullptr;
             break;
         default:
             break;
         }
-
-        delete[] m_h265InternalBuffer;
-        m_h265InternalBuffer = nullptr;
-
     }
 }
 
