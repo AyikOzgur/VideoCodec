@@ -24,12 +24,21 @@ int main (int argc, char *argv[])
     cv::Mat YUV420Frame(height, width, CV_8UC3);
     cr::video::Frame YU12Frame(width, height, cr::video::Fourcc::YU12);
     cr::video::Frame h264Frame(width, height, cr::video::Fourcc::H264);
+    cr::video::Frame h265Frame(width, height, cr::video::Fourcc::HEVC);
 
-    // Create x264 codec
-    VCodecX264 codec;
+    // Create codecs
+    VCodecX264 h264Codec;
+    VCodecX264 h265Codec;
 
-    std::ofstream outputFile("encoded_video.h264", std::ios::binary);
-    if (!outputFile.is_open())
+    std::ofstream outputFileH264("encoded_video.h264", std::ios::binary);
+    if (!outputFileH264.is_open())
+    {
+        std::cerr << "Failed to open output file for writing!" << std::endl;
+        return -1;
+    }
+
+    std::ofstream outputFileH265("encoded_video.h265", std::ios::binary);
+    if (!outputFileH265.is_open())
     {
         std::cerr << "Failed to open output file for writing!" << std::endl;
         return -1;
@@ -52,11 +61,21 @@ int main (int argc, char *argv[])
         memcpy(YU12Frame.data, YUV420Frame.data, YUV420Frame.total() * YUV420Frame.elemSize());
 
         // Encode the frame
-        codec.transcode(YU12Frame, h264Frame);
+        h264Codec.transcode(YU12Frame, h264Frame);
+        h265Codec.transcode(YU12Frame, h265Frame);
 
-        if (outputFile.is_open())
+        if (outputFileH264.is_open())
         {
-            outputFile.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
+            outputFileH264.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
+        }
+        else
+        {
+            std::cerr << "Failed to open output file for writing!" << std::endl;
+        }
+
+        if (outputFileH265.is_open())
+        {
+            outputFileH265.write(reinterpret_cast<char*>(h265Frame.data), h265Frame.size);
         }
         else
         {
@@ -68,5 +87,5 @@ int main (int argc, char *argv[])
     cap.release();
 
     // Close the output file
-    outputFile.close();
+    outputFileH264.close();
 }
