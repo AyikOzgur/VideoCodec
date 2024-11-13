@@ -77,24 +77,19 @@ int main (int argc, char *argv[])
         h264Codec.encode(YU12Frame, h264Frame);
         auto end = std::chrono::high_resolution_clock::now();
 
-        std::cout << "H264 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  | ";
+        std::cout << "H264 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms ( " << h264Frame.size << " bytes ) | ";
 
         start = std::chrono::high_resolution_clock::now();
         h265Codec.encode(YU12Frame, h265Frame);
         end = std::chrono::high_resolution_clock::now();
 
-        std::cout << "H265 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  | ";
+        std::cout << "H265 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  ( " << h265Frame.size << " bytes ) | ";
 
         start = std::chrono::high_resolution_clock::now();
         jpegCodec.encode(rgb24Frame, jpegFrame);
         end = std::chrono::high_resolution_clock::now();
 
-        std::cout << "JPEG encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
-
-        // Print the encoded frame sizes
-        std::cout << "H264 frame size: " << h264Frame.size << " bytes | ";
-        std::cout << "H265 frame size: " << h265Frame.size << " bytes | ";
-        std::cout << "JPEG frame size: " << jpegFrame.size << " bytes" << std::endl;
+        std::cout << "JPEG encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  ( " << jpegFrame.size << " bytes )" << std::endl;
 
         outputFileH264.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
         outputFileH265.write(reinterpret_cast<char*>(h265Frame.data), h265Frame.size);
