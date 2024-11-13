@@ -2,11 +2,6 @@
 #include "VCodecX264Version.h"
 #include <chrono>
 
-VCodecX264::VCodecX264()
-{
-
-}
-
 VCodecX264::~VCodecX264()
 {
     if (m_init)
@@ -42,7 +37,7 @@ std::string VCodecX264::getVersion()
     return VCODEC_X264_VERSION;
 }
 
-bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
+bool VCodecX264::encode(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Check of input frame is valid and destination frame has correct pixel format.
     if (dst.fourcc != cr::video::Fourcc::H264 && dst.fourcc != cr::video::Fourcc::HEVC && dst.fourcc != cr::video::Fourcc::JPEG)
@@ -72,7 +67,6 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
     default:
         return false;
     }
-
 
     // Check if destination frame has enough memory
     if (dst.width != src.width || dst.height != src.height)
@@ -116,7 +110,7 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
                 return false;
             }
             break;
-        default:    
+        default:
             return false;
         }
 
@@ -154,24 +148,8 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
     return true;
 }
 
-bool VCodecX264::setParam(cr::video::VCodecParam id, float value)
-{
-    return false;
-}
-
-float VCodecX264::getParam(cr::video::VCodecParam id)
-{
-    return -1.0f;
-}
-
-bool VCodecX264::executeCommand(cr::video::VCodecCommand cmd)
-{
-    return false;
-}
-
 bool VCodecX264::initH264Encoder(int width, int height)
 {
-
     // Check if it is already initialized and release resources
     if (m_h264Encoder != nullptr)
     {
@@ -220,7 +198,7 @@ bool VCodecX264::initH264Encoder(int width, int height)
     return true;
 }
 
-bool VCodecX264::encodeH264Frame(cr::video::Frame& src, cr::video::Frame& dst)
+bool VCodecX264::encodeH264Frame(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Copy Y plane
     memcpy(m_h264PicIn.img.plane[0], src.data, src.width * src.height);
@@ -303,7 +281,7 @@ bool VCodecX264::initH265Encoder(int width, int height)
     return true;
 }
 
-bool VCodecX264::encodeH265Frame(cr::video::Frame& src, cr::video::Frame& dst)
+bool VCodecX264::encodeH265Frame(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Copy YUV420 frame to the x265 picture
     memcpy(m_h265InternalBuffer, src.data, src.size);
@@ -313,9 +291,9 @@ bool VCodecX264::encodeH265Frame(cr::video::Frame& src, cr::video::Frame& dst)
     m_h265PicIn->planes[1] = m_h265InternalBuffer + src.width * src.height;
     m_h265PicIn->planes[2] = m_h265InternalBuffer + src.width * src.height * 5 / 4;
 
-    m_h265PicIn->stride[0] = src.width;                   // Y stride
-    m_h265PicIn->stride[1] = src.width / 2;               // U stride
-    m_h265PicIn->stride[2] = src.width / 2;               // V stride
+    m_h265PicIn->stride[0] = src.width;     // Y stride
+    m_h265PicIn->stride[1] = src.width / 2; // U stride
+    m_h265PicIn->stride[2] = src.width / 2; // V stride
 
     // Encode frame
     x265_nal *nal;
@@ -359,12 +337,12 @@ bool VCodecX264::initJpegEncoder(int width, int height)
     cinfo.input_components = 3;
     cinfo.in_color_space = JCS_RGB;
     jpeg_set_defaults(&cinfo);
-    jpeg_set_quality(&cinfo, 100, TRUE);
+    jpeg_set_quality(&cinfo, 75, TRUE);
 
     return true;
 }
 
-bool VCodecX264::encodeJpegFrame(cr::video::Frame& src, cr::video::Frame& dst)
+bool VCodecX264::encodeJpegFrame(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Set destination buffer
     jpeg_mem_dest(&cinfo, &jpeg_buffer, &jpeg_size);

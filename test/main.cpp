@@ -74,19 +74,19 @@ int main (int argc, char *argv[])
         memcpy(rgb24Frame.data, rgbFrame.data, rgbFrame.total() * rgbFrame.elemSize());
 
         auto start = std::chrono::high_resolution_clock::now();
-        h264Codec.transcode(YU12Frame, h264Frame);
+        h264Codec.encode(YU12Frame, h264Frame);
         auto end = std::chrono::high_resolution_clock::now();
 
         std::cout << "H264 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  | ";
 
         start = std::chrono::high_resolution_clock::now();
-        h265Codec.transcode(YU12Frame, h265Frame);
+        h265Codec.encode(YU12Frame, h265Frame);
         end = std::chrono::high_resolution_clock::now();
 
         std::cout << "H265 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  | ";
 
         start = std::chrono::high_resolution_clock::now();
-        jpegCodec.transcode(rgb24Frame, jpegFrame);
+        jpegCodec.encode(rgb24Frame, jpegFrame);
         end = std::chrono::high_resolution_clock::now();
 
         std::cout << "JPEG encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
