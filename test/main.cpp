@@ -60,9 +60,17 @@ int main (int argc, char *argv[])
         // Copy the frame data
         memcpy(YU12Frame.data, YUV420Frame.data, YUV420Frame.total() * YUV420Frame.elemSize());
 
-        // Encode the frame
+        auto start = std::chrono::high_resolution_clock::now();
         h264Codec.transcode(YU12Frame, h264Frame);
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::cout << "H264 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  | ";
+
+        start = std::chrono::high_resolution_clock::now();
         h265Codec.transcode(YU12Frame, h265Frame);
+        end = std::chrono::high_resolution_clock::now();
+
+        std::cout << "H265 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
 
         outputFileH264.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
 

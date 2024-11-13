@@ -62,7 +62,6 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
             dst = cr::video::Frame(src.width, src.height, cr::video::Fourcc::HEVC);
             break;
         default:
-            std::cout << "Invalid pixel format" << std::endl;
             return false;
         }
     }
@@ -84,7 +83,6 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
             }
             break;
         default:    
-            std::cout << "Invalid pixel format" << std::endl;
             return false;
         }
 
@@ -110,7 +108,6 @@ bool VCodecX264::transcode(cr::video::Frame& src, cr::video::Frame& dst)
         }
         break;
     default:
-        std::cout << "Invalid pixel format" << std::endl;
         return false;
     }
 
@@ -153,16 +150,13 @@ bool VCodecX264::initH264Encoder(int width, int height)
     m_h264Param.b_vfr_input = 0;
     m_h264Param.b_repeat_headers = 1;
     m_h264Param.b_annexb = 1;
-
     // Set bitrate
     m_h264Param.rc.i_bitrate = m_bitrate;
     m_h264Param.rc.i_rc_method = X264_RC_CRF;
-
     // Set GOP size
     m_h264Param.i_keyint_max = 30;
     // Set frame rate
     m_h264Param.i_fps_num = 30;
-
     // Set number of threads
     m_h264Param.i_threads = 1;
 
@@ -240,18 +234,14 @@ bool VCodecX264::initH265Encoder(int width, int height)
     m_h265Param.bRepeatHeaders = 1;
     m_h265Param.bAnnexB = 1;
     m_h265Param.internalCsp = X265_CSP_I420;
-
     // Set bitrate
     m_h265Param.rc.bitrate = m_bitrate;
     m_h265Param.rc.rateControlMode = X265_RC_CRF;
-
     // Set GOP size
     m_h265Param.keyframeMax = 30;
-
     // Set frame rate
     m_h265Param.fpsNum = 30;
     m_h265Param.fpsDenom = 1;
-
     m_h265Param.frameNumThreads = 1;
 
     // Apply profile
