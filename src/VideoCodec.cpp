@@ -1,5 +1,5 @@
-#include "VCodecX264.h"
-#include "VCodecX264Version.h"
+#include "VideoCodec.h"
+#include "VideoCodecVersion.h"
 #include <chrono>
 
 VideoCodec::~VideoCodec()
@@ -34,7 +34,7 @@ VideoCodec::~VideoCodec()
 
 std::string VideoCodec::getVersion()
 {
-    return VCODEC_X264_VERSION;
+    return VIDEO_CODEC_VERSION;
 }
 
 bool VideoCodec::encode(cr::video::Frame &src, cr::video::Frame &dst)

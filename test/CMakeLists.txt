@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.13)
 ## EXECUTABLE-PROJECT
 ## name and version
 ################################################################################
-project(VCodecX264Test LANGUAGES CXX)
+project(VideoCodecTest LANGUAGES CXX)
 
 
 
@@ -43,7 +43,7 @@ endif()
 ## LINK LIBRARIES
 ## linking all dependencies
 ################################################################################
-target_link_libraries (${PROJECT_NAME} VCodecX264)
+target_link_libraries (${PROJECT_NAME} VideoCodec)
 
 find_package(OpenCV REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})

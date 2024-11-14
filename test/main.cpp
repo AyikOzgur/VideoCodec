@@ -1,6 +1,6 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include "VCodecX264.h"
+#include "VideoCodec.h"
 #include <fstream>
 
 
