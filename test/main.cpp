@@ -30,9 +30,9 @@ int main (int argc, char *argv[])
     cr::video::Frame jpegFrame(width, height, cr::video::Fourcc::JPEG);
 
     // Create codecs
-    VCodecX264 h264Codec;
-    VCodecX264 h265Codec;
-    VCodecX264 jpegCodec;
+    VideoCodec h264Codec;
+    VideoCodec h265Codec;
+    VideoCodec jpegCodec;
 
     std::ofstream outputFileH264("encoded_video.h264", std::ios::binary);
     if (!outputFileH264.is_open())

@@ -2,7 +2,7 @@
 #include "VCodecX264Version.h"
 #include <chrono>
 
-VCodecX264::~VCodecX264()
+VideoCodec::~VideoCodec()
 {
     if (m_init)
     {
@@ -32,12 +32,12 @@ VCodecX264::~VCodecX264()
     }
 }
 
-std::string VCodecX264::getVersion()
+std::string VideoCodec::getVersion()
 {
     return VCODEC_X264_VERSION;
 }
 
-bool VCodecX264::encode(cr::video::Frame &src, cr::video::Frame &dst)
+bool VideoCodec::encode(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Check of input frame is valid and destination frame has correct pixel format.
     if (dst.fourcc != cr::video::Fourcc::H264 && dst.fourcc != cr::video::Fourcc::HEVC && dst.fourcc != cr::video::Fourcc::JPEG)
@@ -148,7 +148,7 @@ bool VCodecX264::encode(cr::video::Frame &src, cr::video::Frame &dst)
     return true;
 }
 
-bool VCodecX264::initH264Encoder(int width, int height)
+bool VideoCodec::initH264Encoder(int width, int height)
 {
     // Check if it is already initialized and release resources
     if (m_h264Encoder != nullptr)
@@ -198,7 +198,7 @@ bool VCodecX264::initH264Encoder(int width, int height)
     return true;
 }
 
-bool VCodecX264::encodeH264Frame(cr::video::Frame &src, cr::video::Frame &dst)
+bool VideoCodec::encodeH264Frame(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Copy Y plane
     memcpy(m_h264PicIn.img.plane[0], src.data, src.width * src.height);
@@ -229,7 +229,7 @@ bool VCodecX264::encodeH264Frame(cr::video::Frame &src, cr::video::Frame &dst)
     return true;
 }
 
-bool VCodecX264::initH265Encoder(int width, int height)
+bool VideoCodec::initH265Encoder(int width, int height)
 {
     // Check if it is already initialized and release resources
     if (m_h265Encoder != nullptr)
@@ -281,7 +281,7 @@ bool VCodecX264::initH265Encoder(int width, int height)
     return true;
 }
 
-bool VCodecX264::encodeH265Frame(cr::video::Frame &src, cr::video::Frame &dst)
+bool VideoCodec::encodeH265Frame(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Copy YUV420 frame to the x265 picture
     memcpy(m_h265InternalBuffer, src.data, src.size);
@@ -316,7 +316,7 @@ bool VCodecX264::encodeH265Frame(cr::video::Frame &src, cr::video::Frame &dst)
     return true;
 }
 
-bool VCodecX264::initJpegEncoder(int width, int height)
+bool VideoCodec::initJpegEncoder(int width, int height)
 {
     // Check if it is already initialized and release resources
     if (jpeg_buffer != nullptr)
@@ -342,7 +342,7 @@ bool VCodecX264::initJpegEncoder(int width, int height)
     return true;
 }
 
-bool VCodecX264::encodeJpegFrame(cr::video::Frame &src, cr::video::Frame &dst)
+bool VideoCodec::encodeJpegFrame(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Set destination buffer
     jpeg_mem_dest(&cinfo, &jpeg_buffer, &jpeg_size);

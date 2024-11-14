@@ -5,18 +5,18 @@
 #include "x264.h"
 #include "x265.h"
 #include <jpeglib.h>
-#include "VCodec.h"
+#include "Frame.h"
 
 
 
 /**
  * @brief Video codec.
  */
-class VCodecX264
+class VideoCodec
 {
 public:
 
-    ~VCodecX264();
+    ~VideoCodec();
 
     static std::string getVersion();
 
