@@ -76,19 +76,16 @@ int main (int argc, char *argv[])
         auto start = std::chrono::high_resolution_clock::now();
         h264Codec.encode(YU12Frame, h264Frame);
         auto end = std::chrono::high_resolution_clock::now();
-
         std::cout << "H264 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms ( " << h264Frame.size << " bytes ) | ";
 
         start = std::chrono::high_resolution_clock::now();
         h265Codec.encode(YU12Frame, h265Frame);
         end = std::chrono::high_resolution_clock::now();
-
         std::cout << "H265 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  ( " << h265Frame.size << " bytes ) | ";
 
         start = std::chrono::high_resolution_clock::now();
         jpegCodec.encode(rgb24Frame, jpegFrame);
         end = std::chrono::high_resolution_clock::now();
-
         std::cout << "JPEG encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  ( " << jpegFrame.size << " bytes )" << std::endl;
 
         outputFileH264.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
