@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.13)
 ## PROJECT
 ## name and version
 ################################################################################
-project(VCodecX264 LANGUAGES CXX)
+project(VideoCodec LANGUAGES CXX)
 
 
 
@@ -34,12 +34,12 @@ endif()
 ## CONFIGURATION
 ## project configuration
 ################################################################################
-SET(${PARENT}_VCODEC_X264                    ON  CACHE BOOL "" ${REWRITE_FORCE})
+SET(${PARENT}_VIDEO_CODEC                   ON  CACHE BOOL "" ${REWRITE_FORCE})
 if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    SET(${PARENT}_VCODEC_X264_TEST           OFF CACHE BOOL "" ${REWRITE_FORCE})
+    SET(${PARENT}_VIDEO_CODEC_TEST           OFF CACHE BOOL "" ${REWRITE_FORCE})
     message("${PROJECT_NAME} included as subrepository")
 else()
-    SET(${PARENT}_VCODEC_X264_TEST          ON  CACHE BOOL "" ${REWRITE_FORCE})
+    SET(${PARENT}_VIDEO_CODEC_TEST          ON  CACHE BOOL "" ${REWRITE_FORCE})
     message("${PROJECT_NAME} is stand alone repository")
 endif()
 
@@ -49,11 +49,11 @@ endif()
 ## INCLUDING SUBDIRECTORIES
 ## Adding subdirectories according to the project configuration
 ################################################################################
-if (${PARENT}_VCODEC_X264)
+if (${PARENT}_VIDEO_CODEC)
     add_subdirectory(3rdparty)
     add_subdirectory(src)
 endif()
 
-if (${PARENT}_VCODEC_X264_TEST)
+if (${PARENT}_VIDEO_CODEC_TEST)
     add_subdirectory(test)
 endif()
