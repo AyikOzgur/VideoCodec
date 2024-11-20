@@ -102,30 +102,40 @@ int main (int argc, char *argv[])
         outputFileH265.write(reinterpret_cast<char*>(h265Frame.data), h265Frame.size);
         outputFileJpeg.write(reinterpret_cast<char*>(jpegFrame.data), jpegFrame.size);
 
+
+        start = std::chrono::high_resolution_clock::now();
         // Decode the h264 frame
         if (!h264Decoder.decode(h264Frame, h264DecodedFrame))
         {
             std::cerr << "Failed to decode h264 frame" << std::endl;
             return -1;
         }
+        end = std::chrono::high_resolution_clock::now();
+        std::cout << "H264 decoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms | ";
         cv::Mat h264DecodedMat(height, width, CV_8UC3);
         memcpy(h264DecodedMat.data, h264DecodedFrame.data, h264DecodedFrame.size);
 
+        start = std::chrono::high_resolution_clock::now();
         // Decode the h265 frame
         if (!h265Decoder.decode(h265Frame, h265DecodedFrame))
         {
             std::cerr << "Failed to decode h265 frame" << std::endl;
             return -1;
         }
+        end = std::chrono::high_resolution_clock::now();
+        std::cout << "H265 decoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms | ";
         cv::Mat h265DecodedMat(height, width, CV_8UC3);
         memcpy(h265DecodedMat.data, h265DecodedFrame.data, h265DecodedFrame.size);
 
+        start = std::chrono::high_resolution_clock::now();
         // Decode the jpeg frame
         if (!jpegDecoder.decode(jpegFrame, jpegDecodedFrame))
         {
             std::cerr << "Failed to decode jpeg frame" << std::endl;
             return -1;
         }
+        end = std::chrono::high_resolution_clock::now();
+        std::cout << "JPEG decoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
         cv::Mat jpegDecodedMat(height, width, CV_8UC3);
         memcpy(jpegDecodedMat.data, jpegDecodedFrame.data, jpegDecodedFrame.size);
         
