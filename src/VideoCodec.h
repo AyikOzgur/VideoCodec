@@ -5,6 +5,17 @@
 #include "x264.h"
 #include "x265.h"
 #include <jpeglib.h>
+
+extern "C" 
+{
+    #include <libavcodec/avcodec.h>
+    #include <libavutil/frame.h>
+    #include <libavutil/imgutils.h>
+    #include <libavformat/avformat.h>
+    #include <libswscale/swscale.h>
+    #include <libavfilter/avfilter.h>
+}
+
 #include "Frame.h"
 
 
@@ -22,14 +33,17 @@ public:
 
     bool encode(cr::video::Frame& src, cr::video::Frame& dst);
 
+    bool decode(cr::video::Frame& src, cr::video::Frame& dst);
+
 private:
 
     /// init flag
-    bool m_init{false};
+    bool m_encoderInit{false};
+    bool m_decoderInit{false};
     int m_width{-1};
     int m_height{-1};
     int m_bitrate{5000000}; // 5 Mbps
-    cr::video::Fourcc m_pixelFormat{cr::video::Fourcc::H264};
+    cr::video::Fourcc m_pixelFormat{cr::video::Fourcc::YUYV};
 
     /// x264 encoder parameters
     x264_param_t m_h264Param;
@@ -55,4 +69,13 @@ private:
     unsigned long jpeg_size = 0;
     bool initJpegEncoder(int width, int height);
     bool encodeJpegFrame(cr::video::Frame& src, cr::video::Frame& dst);
+
+    /// H.264 decoder parameters
+    AVCodec *m_decoder;
+    AVCodecContext *codec_ctx;
+    AVPacket *packet;
+    AVFrame *frame;
+    struct SwsContext* sws_ctx;
+    bool initDecoder(cr::video::Frame frame);
+    bool decodeFrame(cr::video::Frame& src, cr::video::Frame& dst);
 };

@@ -53,7 +53,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 ## linking all dependencies
 ###############################################################################
 target_link_libraries(${PROJECT_NAME} Frame)
+include_directories(/usr/include)
 
 target_link_libraries(${PROJECT_NAME} x264)
 target_link_libraries(${PROJECT_NAME} x265)
 target_link_libraries(${PROJECT_NAME} jpeg)
+
+find_library(AVCODEC avcodec avformat avutil avfilter swscale)
+target_link_libraries(${PROJECT_NAME} avcodec)
+target_link_libraries(${PROJECT_NAME} avformat)
+target_link_libraries(${PROJECT_NAME} avutil)
+target_link_libraries(${PROJECT_NAME} avfilter)
+target_link_libraries(${PROJECT_NAME} swscale)
