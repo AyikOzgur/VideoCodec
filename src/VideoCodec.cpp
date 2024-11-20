@@ -377,7 +377,7 @@ bool VideoCodec::initJpegEncoder(int width, int height)
     cinfo.input_components = 3;
     cinfo.in_color_space = JCS_RGB;
     jpeg_set_defaults(&cinfo);
-    jpeg_set_quality(&cinfo, 75, TRUE);
+    jpeg_set_quality(&cinfo, 50, TRUE);
 
     return true;
 }
