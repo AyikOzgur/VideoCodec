@@ -2,8 +2,8 @@
 #include <string>
 #include <iostream>
 #include <stdint.h>
-#include "x264.h"
-#include "x265.h"
+#include <x264.h>
+#include <x265.h>
 #include <jpeglib.h>
 
 extern "C" 

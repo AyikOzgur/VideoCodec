@@ -1,6 +1,5 @@
 #include "VideoCodec.h"
 #include "VideoCodecVersion.h"
-#include <chrono>
 
 VideoCodec::~VideoCodec()
 {

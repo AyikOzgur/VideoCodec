@@ -1,7 +1,6 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "VideoCodec.h"
-#include <fstream>
 
 
 int main (int argc, char *argv[])
