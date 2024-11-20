@@ -44,26 +44,6 @@ int main (int argc, char *argv[])
     VideoCodec h265Decoder;
     VideoCodec jpegDecoder;
 
-    std::ofstream outputFileH264("encoded_video.h264", std::ios::binary);
-    if (!outputFileH264.is_open())
-    {
-        std::cerr << "Failed to open output file of h264 for writing!" << std::endl;
-        return -1;
-    }
-
-    std::ofstream outputFileH265("encoded_video.h265", std::ios::binary);
-    if (!outputFileH265.is_open())
-    {
-        std::cerr << "Failed to open output file of h265 for writing!" << std::endl;
-        return -1;
-    }
-
-    std::ofstream outputFileJpeg("encoded_video.mjpeg", std::ios::binary);
-    if (!outputFileJpeg.is_open())
-    {
-        std::cerr << "Failed to open output file of jpeg for writing!" << std::endl;
-        return -1;
-    }
 
     while (true)
     {
@@ -86,21 +66,17 @@ int main (int argc, char *argv[])
         auto start = std::chrono::high_resolution_clock::now();
         h264Codec.encode(YU12Frame, h264Frame);
         auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "H264 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms ( " << h264Frame.size << " bytes ) | ";
+        auto h264EncodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
         start = std::chrono::high_resolution_clock::now();
         h265Codec.encode(YU12Frame, h265Frame);
         end = std::chrono::high_resolution_clock::now();
-        std::cout << "H265 encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  ( " << h265Frame.size << " bytes ) | ";
+        auto h265EncodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
         start = std::chrono::high_resolution_clock::now();
         jpegCodec.encode(rgb24Frame, jpegFrame);
         end = std::chrono::high_resolution_clock::now();
-        std::cout << "JPEG encoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms  ( " << jpegFrame.size << " bytes )" << std::endl;
-
-        outputFileH264.write(reinterpret_cast<char*>(h264Frame.data), h264Frame.size);
-        outputFileH265.write(reinterpret_cast<char*>(h265Frame.data), h265Frame.size);
-        outputFileJpeg.write(reinterpret_cast<char*>(jpegFrame.data), jpegFrame.size);
+        auto jpegEncodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
 
         start = std::chrono::high_resolution_clock::now();
@@ -111,7 +87,7 @@ int main (int argc, char *argv[])
             return -1;
         }
         end = std::chrono::high_resolution_clock::now();
-        std::cout << "H264 decoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms | ";
+        auto h264DecodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         cv::Mat h264DecodedMat(height, width, CV_8UC3);
         memcpy(h264DecodedMat.data, h264DecodedFrame.data, h264DecodedFrame.size);
 
@@ -123,7 +99,7 @@ int main (int argc, char *argv[])
             return -1;
         }
         end = std::chrono::high_resolution_clock::now();
-        std::cout << "H265 decoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms | ";
+        auto h265DecodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         cv::Mat h265DecodedMat(height, width, CV_8UC3);
         memcpy(h265DecodedMat.data, h265DecodedFrame.data, h265DecodedFrame.size);
 
@@ -135,7 +111,7 @@ int main (int argc, char *argv[])
             return -1;
         }
         end = std::chrono::high_resolution_clock::now();
-        std::cout << "JPEG decoding time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+        auto jpegDecodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         cv::Mat jpegDecodedMat(height, width, CV_8UC3);
         memcpy(jpegDecodedMat.data, jpegDecodedFrame.data, jpegDecodedFrame.size);
         
@@ -178,6 +154,44 @@ int main (int argc, char *argv[])
         cv::putText(combinedMat, text2, cv::Point(cropWidth + (cropWidth - text_size.width) / 2, height - height / 4), font_face, fontScale, cv::Scalar(0, 255, 0), fontThickness);
         cv::putText(combinedMat, text3, cv::Point(2 * cropWidth + (cropWidth - text_size.width) / 2, height - height / 4), font_face, fontScale, cv::Scalar(0, 0, 255), fontThickness);
 
+        // Put encoding and decoding times
+        for (int i = 0; i < 3; i++)
+        {
+            std::string encodingTime = "Encoding time: ";
+            std::string decodingTime = "Decoding time: ";
+            std::string timeUnit = " ms";
+            std::string encodedFrameSize = "Encoded size: ";
+            int frameSize;
+            std::string encodeTime;
+            std::string decodeTime;
+            switch (i)
+            {
+            case 0:
+                encodeTime = std::to_string(h264EncodeTime);
+                decodeTime = std::to_string(h264DecodeTime);
+                frameSize = h264Frame.size / 1000; // in KB
+                break;
+            case 1:
+                encodeTime = std::to_string(h265EncodeTime);
+                decodeTime = std::to_string(h265DecodeTime);
+                frameSize = h265Frame.size / 1000; // in KB
+                break;
+            case 2:
+                encodeTime = std::to_string(jpegEncodeTime);
+                decodeTime = std::to_string(jpegDecodeTime);
+                frameSize = jpegFrame.size / 1000; // in KB
+                break;
+            default:
+                break;
+            }
+            cv::putText(combinedMat, encodingTime + encodeTime + timeUnit, cv::Point(i * cropWidth + 10, 30), font_face, 1, cv::Scalar(255, 255, 255), 1);
+            cv::putText(combinedMat, decodingTime + decodeTime + timeUnit, cv::Point(i * cropWidth + 10, 60), font_face, 1, cv::Scalar(255, 255, 255), 1);
+
+            // Put also encoded frame size
+            cv::putText(combinedMat, encodedFrameSize + std::to_string(frameSize) + " KB", cv::Point(i * cropWidth + 10, 90), font_face, 1, cv::Scalar(255, 255, 255), 1);
+
+        }
+
         // Display the final frame
         cv::imshow("Preview", combinedMat);
 
@@ -192,8 +206,5 @@ int main (int argc, char *argv[])
     // Release the video file
     cap.release();
 
-    // Close the output file
-    outputFileH264.close();
-    outputFileH265.close();
-    outputFileJpeg.close();
+    return 0;
 }
