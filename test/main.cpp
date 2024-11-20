@@ -141,25 +141,21 @@ int main (int argc, char *argv[])
         std::string text3 = "jpeg";
 
         // Add text to the center of each section
-        int font_face = cv::FONT_ITALIC;
+        int fontFace = cv::FONT_ITALIC;
         double fontScale = 3.5;
         int fontThickness = 3;
         // Calculate the size of the text to center it
         int baseline;
-        cv::Size text_size = cv::getTextSize(text1, font_face, fontScale, fontThickness, &baseline);
+        cv::Size textSize = cv::getTextSize(text1, fontFace, fontScale, fontThickness, &baseline);
 
         // Put text in the center of each section
-        cv::putText(combinedMat, text1, cv::Point((cropWidth - text_size.width) / 2, height - height / 4), font_face, fontScale, cv::Scalar(255, 0, 0), fontThickness);
-        cv::putText(combinedMat, text2, cv::Point(cropWidth + (cropWidth - text_size.width) / 2, height - height / 4), font_face, fontScale, cv::Scalar(0, 255, 0), fontThickness);
-        cv::putText(combinedMat, text3, cv::Point(2 * cropWidth + (cropWidth - text_size.width) / 2, height - height / 4), font_face, fontScale, cv::Scalar(0, 0, 255), fontThickness);
+        cv::putText(combinedMat, text1, cv::Point((cropWidth - textSize.width) / 2, height - height / 4), fontFace, fontScale, cv::Scalar(255, 0, 0), fontThickness);
+        cv::putText(combinedMat, text2, cv::Point(cropWidth + (cropWidth - textSize.width) / 2, height - height / 4), fontFace, fontScale, cv::Scalar(0, 255, 0), fontThickness);
+        cv::putText(combinedMat, text3, cv::Point(2 * cropWidth + (cropWidth - textSize.width) / 2, height - height / 4), fontFace, fontScale, cv::Scalar(0, 0, 255), fontThickness);
 
         // Put encoding and decoding times
         for (int i = 0; i < 3; i++)
         {
-            std::string encodingTime = "Encoding time: ";
-            std::string decodingTime = "Decoding time: ";
-            std::string timeUnit = " ms";
-            std::string encodedFrameSize = "Encoded size: ";
             int frameSize;
             std::string encodeTime;
             std::string decodeTime;
@@ -183,11 +179,11 @@ int main (int argc, char *argv[])
             default:
                 break;
             }
-            cv::putText(combinedMat, encodingTime + encodeTime + timeUnit, cv::Point(i * cropWidth + 10, 30), font_face, 1, cv::Scalar(255, 255, 255), 1);
-            cv::putText(combinedMat, decodingTime + decodeTime + timeUnit, cv::Point(i * cropWidth + 10, 60), font_face, 1, cv::Scalar(255, 255, 255), 1);
+            cv::putText(combinedMat, "Encoding time: " + encodeTime + " ms", cv::Point(i * cropWidth + 10, 30), fontFace, 1, cv::Scalar(255, 255, 255), 1);
+            cv::putText(combinedMat, "Decoding time: " + decodeTime + " ms", cv::Point(i * cropWidth + 10, 60), fontFace, 1, cv::Scalar(255, 255, 255), 1);
 
             // Put also encoded frame size
-            cv::putText(combinedMat, encodedFrameSize + std::to_string(frameSize) + " KB", cv::Point(i * cropWidth + 10, 90), font_face, 1, cv::Scalar(255, 255, 255), 1);
+            cv::putText(combinedMat, "Encoded size: " + std::to_string(frameSize) + " KB", cv::Point(i * cropWidth + 10, 90), fontFace, 1, cv::Scalar(255, 255, 255), 1);
 
         }
 
