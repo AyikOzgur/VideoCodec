@@ -27,19 +27,39 @@ class VideoCodec
 {
 public:
 
+    /**
+     * @brief Class destructor.
+     */
     ~VideoCodec();
 
+    /**
+     * @brief Get string of current class version.
+     * @return String of current class version "Major.Minor.Patch"
+     */
     static std::string getVersion();
 
+    /**
+     * @brief Encodes a video frame.
+     * @param src Source frame.
+     * @param dst Destination frame.
+     * @return TRUE if the frame was encoded successfully or FALSE.
+     */
     bool encode(cr::video::Frame& src, cr::video::Frame& dst);
 
+    /**
+     * @brief Decodes a video frame.
+     * @param src Source frame.
+     * @param dst Destination frame.
+     * @return TRUE if the frame was decoded successfully or FALSE.
+     */
     bool decode(cr::video::Frame& src, cr::video::Frame& dst);
 
 private:
 
-    /// init flag
+    /// init flags.
     bool m_encoderInit{false};
     bool m_decoderInit{false};
+    /// Video parameters.
     int m_width{-1};
     int m_height{-1};
     int m_bitrate{5000000}; // 5 Mbps
