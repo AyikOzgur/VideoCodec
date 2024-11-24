@@ -1,10 +1,9 @@
 #include "VideoCodec.h"
 #include "VideoCodecVersion.h"
-#include <chrono>
 
 VideoCodec::~VideoCodec()
 {
-    if (m_init)
+    if (m_encoderInit)
     {
         switch (m_pixelFormat)
         {
@@ -29,6 +28,17 @@ VideoCodec::~VideoCodec()
         default:
             break;
         }
+    }
+
+    if (m_decoderInit)
+    {
+        // It is h264 decoder
+        av_frame_free(&frame);
+        av_packet_free(&packet);
+        avcodec_free_context(&codec_ctx);
+
+        // Release sws context
+        sws_freeContext(sws_ctx);
     }
 }
 
@@ -88,7 +98,7 @@ bool VideoCodec::encode(cr::video::Frame &src, cr::video::Frame &dst)
         }
     }
 
-    if (!m_init || m_width != src.width || m_height != src.height || m_pixelFormat != dst.fourcc)
+    if (!m_encoderInit || m_width != src.width || m_height != src.height || m_pixelFormat != dst.fourcc)
     {
         switch (dst.fourcc)
         {
@@ -117,7 +127,7 @@ bool VideoCodec::encode(cr::video::Frame &src, cr::video::Frame &dst)
         m_width = src.width;
         m_height = src.height;
         m_pixelFormat = dst.fourcc;
-        m_init = true;
+        m_encoderInit = true;
     }
 
     // Encode frame
@@ -142,6 +152,35 @@ bool VideoCodec::encode(cr::video::Frame &src, cr::video::Frame &dst)
         }
         break;
     default:
+        return false;
+    }
+
+    return true;
+}
+
+bool VideoCodec::decode(cr::video::Frame &src, cr::video::Frame &dst)
+{
+    // Check if input frame is valid
+    if (src.fourcc != cr::video::Fourcc::H264 && src.fourcc != cr::video::Fourcc::HEVC && src.fourcc != cr::video::Fourcc::JPEG || dst.fourcc != cr::video::Fourcc::BGR24)
+    {
+        std::cout << "Invalid pixel format" << std::endl;
+        return false;
+    }
+
+    if (!m_decoderInit)
+    {
+        if (!initDecoder(src))
+        {
+            std::cout << "Failed to initialize decoder" << std::endl;
+            return false;
+        }
+
+        m_decoderInit = true;
+    }
+
+    // Decode frame
+    if (!decodeFrame(src, dst))
+    {
         return false;
     }
 
@@ -337,7 +376,7 @@ bool VideoCodec::initJpegEncoder(int width, int height)
     cinfo.input_components = 3;
     cinfo.in_color_space = JCS_RGB;
     jpeg_set_defaults(&cinfo);
-    jpeg_set_quality(&cinfo, 75, TRUE);
+    jpeg_set_quality(&cinfo, 50, TRUE);
 
     return true;
 }
@@ -364,6 +403,118 @@ bool VideoCodec::encodeJpegFrame(cr::video::Frame &src, cr::video::Frame &dst)
     // Copy JPEG data to destination frame
     memcpy(dst.data, jpeg_buffer, jpeg_size);
     dst.size = jpeg_size;
+
+    return true;
+}
+
+bool VideoCodec::initDecoder(cr::video::Frame src)
+{
+    switch (src.fourcc)
+    {
+    case cr::video::Fourcc::H264:
+    {
+        m_decoder = avcodec_find_decoder(AV_CODEC_ID_H264);
+        if (!m_decoder) 
+        {
+            std::cout << "H.264 codec not found" << std::endl;
+            return false;
+        }
+        break;
+    }
+    case cr::video::Fourcc::HEVC:
+    {
+        m_decoder = avcodec_find_decoder(AV_CODEC_ID_HEVC);
+        if (!m_decoder) 
+        {
+            std::cout << "H.265 codec not found" << std::endl;
+            return false;
+        }
+        break;
+    }
+    case cr::video::Fourcc::JPEG:
+    {
+        m_decoder = avcodec_find_decoder(AV_CODEC_ID_MJPEG);
+        if (!m_decoder) 
+        {
+            std::cout << "JPEG codec not found" << std::endl;
+            return false;
+        }
+        break;
+    }
+    default:
+        std::cout << "Invalid format" << std::endl;
+        return false;
+    }
+
+    codec_ctx = avcodec_alloc_context3(m_decoder);
+    if (!codec_ctx) 
+    {
+        fprintf(stderr, "Could not allocate video codec context\n");
+        return false;
+    }
+
+    if (avcodec_open2(codec_ctx, m_decoder, NULL) < 0) 
+    {
+        fprintf(stderr, "Could not open codec\n");
+        avcodec_free_context(&codec_ctx);
+        return false;
+    }
+
+    packet = av_packet_alloc();
+    if (!packet) 
+    {
+        fprintf(stderr, "Could not allocate packet\n");
+        avcodec_free_context(&codec_ctx);
+        return false;
+    }
+
+    av_init_packet(packet);
+
+    frame = av_frame_alloc();
+    if (!frame) 
+    {
+        fprintf(stderr, "Could not allocate video frame\n");
+        av_packet_free(&packet);
+        avcodec_free_context(&codec_ctx);
+        return false;
+    }
+
+    sws_ctx = sws_getContext(
+    src.width, src.height, AV_PIX_FMT_YUV420P,    // Input width, height, and format (YUV420P)
+    src.width, src.height, AV_PIX_FMT_BGR24,      // Output width, height, and format (BGR24)
+    SWS_BICUBIC, NULL, NULL, NULL);       // Scaling algorithm (e.g., bicubic)
+
+    return true;
+}
+
+bool VideoCodec::decodeFrame(cr::video::Frame &src, cr::video::Frame &dst)
+{
+
+    // Copy encoded frame to packet
+    packet->data = src.data;
+    packet->size = src.size;
+    int  got_picture;
+    // Decode frame
+    if (avcodec_decode_video2(codec_ctx, frame, &got_picture, packet) < 0) 
+    {
+        std::cout << "Error decoding frame" << std::endl;
+        return false;
+    }
+
+    if (got_picture) 
+    {
+        int width = frame->width;
+        int height = frame->height;
+
+        // Convert YUV420P frame to BGR24
+        uint8_t* dstData[4] = {dst.data, nullptr, nullptr, nullptr};
+        int dstLinesize[4] = {width * 3, 0, 0, 0};  // BGR24 requires 3 bytes per pixel
+
+        // Perform the conversion
+        sws_scale(sws_ctx, frame->data, frame->linesize, 0, height, dstData, dstLinesize);
+        dst.size = width * height * 3; // BGR24 format size
+        return true;
+    }
 
     return true;
 }
