@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.13)
 ## LIBRARY-PROJECT
 ## name and version
 ###############################################################################
-project(VideoCodec VERSION 1.1.0 LANGUAGES CXX)
+project(VideoCodec VERSION 1.1.1 LANGUAGES CXX)
 
 
 
@@ -39,7 +39,7 @@ file (GLOB_RECURSE CPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file (GLOB_RECURSE C_FILES   ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 
 # concatenate the results (glob files) to variable
-set  (SOURCES ${CPP_FILES} ${H_FILES} ${C_FILES})
+set (SOURCES ${CPP_FILES} ${H_FILES} ${C_FILES})
 # create lib from src
 if (NOT TARGET ${PROJECT_NAME})
     add_library(${PROJECT_NAME} ${SOURCES})
@@ -53,7 +53,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 ## linking all dependencies
 ###############################################################################
 target_link_libraries(${PROJECT_NAME} Frame)
-include_directories(/usr/include)
 
 target_link_libraries(${PROJECT_NAME} x264)
 target_link_libraries(${PROJECT_NAME} x265)
