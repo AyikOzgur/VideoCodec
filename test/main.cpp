@@ -16,7 +16,6 @@ int main (int argc, char *argv[])
     // Get video properties
     int width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
     int height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-    double fps = cap.get(cv::CAP_PROP_FPS);
 
     // Frames 
     cv::Mat inputFrame(height, width, CV_8UC3);
@@ -28,21 +27,20 @@ int main (int argc, char *argv[])
     cr::video::Frame rgb24Frame(width, height, cr::video::Fourcc::RGB24);
     cr::video::Frame jpegFrame(width, height, cr::video::Fourcc::JPEG);
 
-    // Decoded frames
+    // Decoded frames.
     cr::video::Frame h264DecodedFrame(width, height, cr::video::Fourcc::BGR24);
     cr::video::Frame h265DecodedFrame(width, height, cr::video::Fourcc::BGR24);
     cr::video::Frame jpegDecodedFrame(width, height, cr::video::Fourcc::BGR24);
 
-    // Create codecs
+    // Encoders.
     VideoCodec h264Codec;
     VideoCodec h265Codec;
     VideoCodec jpegCodec;
 
-    // Decoder
+    // Decoders.
     VideoCodec h264Decoder;
     VideoCodec h265Decoder;
     VideoCodec jpegDecoder;
-
 
     while (true)
     {
@@ -79,36 +77,21 @@ int main (int argc, char *argv[])
 
 
         start = std::chrono::high_resolution_clock::now();
-        // Decode the h264 frame
-        if (!h264Decoder.decode(h264Frame, h264DecodedFrame))
-        {
-            std::cerr << "Failed to decode h264 frame" << std::endl;
-            return -1;
-        }
+        h264Decoder.decode(h264Frame, h264DecodedFrame);
         end = std::chrono::high_resolution_clock::now();
         auto h264DecodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         cv::Mat h264DecodedMat(height, width, CV_8UC3);
         memcpy(h264DecodedMat.data, h264DecodedFrame.data, h264DecodedFrame.size);
 
         start = std::chrono::high_resolution_clock::now();
-        // Decode the h265 frame
-        if (!h265Decoder.decode(h265Frame, h265DecodedFrame))
-        {
-            std::cerr << "Failed to decode h265 frame" << std::endl;
-            return -1;
-        }
+        h265Decoder.decode(h265Frame, h265DecodedFrame);
         end = std::chrono::high_resolution_clock::now();
         auto h265DecodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         cv::Mat h265DecodedMat(height, width, CV_8UC3);
         memcpy(h265DecodedMat.data, h265DecodedFrame.data, h265DecodedFrame.size);
 
         start = std::chrono::high_resolution_clock::now();
-        // Decode the jpeg frame
-        if (!jpegDecoder.decode(jpegFrame, jpegDecodedFrame))
-        {
-            std::cerr << "Failed to decode jpeg frame" << std::endl;
-            return -1;
-        }
+        jpegDecoder.decode(jpegFrame, jpegDecodedFrame);
         end = std::chrono::high_resolution_clock::now();
         auto jpegDecodeTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         cv::Mat jpegDecodedMat(height, width, CV_8UC3);
@@ -191,7 +174,7 @@ int main (int argc, char *argv[])
         cv::imshow("Preview", combinedMat);
 
         // Wait for 1ms and check if the user pressed the 'Esc' key
-        if (cv::waitKey(1) == 27)
+        if (cv::waitKey(0) == 27)
         {
             // Stop the video
             break;

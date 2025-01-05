@@ -36,7 +36,7 @@ endif()
 ################################################################################
 SET(${PARENT}_VIDEO_CODEC                   ON  CACHE BOOL "" ${REWRITE_FORCE})
 if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    SET(${PARENT}_VIDEO_CODEC_TEST           OFF CACHE BOOL "" ${REWRITE_FORCE})
+    SET(${PARENT}_VIDEO_CODEC_TEST          OFF CACHE BOOL "" ${REWRITE_FORCE})
     message("${PROJECT_NAME} included as subrepository")
 else()
     SET(${PARENT}_VIDEO_CODEC_TEST          ON  CACHE BOOL "" ${REWRITE_FORCE})

@@ -59,7 +59,7 @@ bool VideoCodec::encode(cr::video::Frame &src, cr::video::Frame &dst)
     // Check if input frame is valid
     switch (dst.fourcc)
     {
-    case cr::video::Fourcc::H264:
+    case cr::video::Fourcc::H264: [[fallthrough]];
     case cr::video::Fourcc::HEVC:
         if (src.fourcc != cr::video::Fourcc::YU12)
         {
@@ -82,23 +82,10 @@ bool VideoCodec::encode(cr::video::Frame &src, cr::video::Frame &dst)
     if (dst.width != src.width || dst.height != src.height)
     {
         dst.release();
-        switch (dst.fourcc)
-        {
-        case cr::video::Fourcc::H264:
-            dst = cr::video::Frame(src.width, src.height, cr::video::Fourcc::H264);
-            break;
-        case cr::video::Fourcc::HEVC:
-            dst = cr::video::Frame(src.width, src.height, cr::video::Fourcc::HEVC);
-            break;
-        case cr::video::Fourcc::JPEG:
-            dst = cr::video::Frame(src.width, src.height, cr::video::Fourcc::JPEG);
-            break;
-        default:
-            return false;
-        }
+        dst = cr::video::Frame(src.width, src.height, dst.fourcc);
     }
 
-    if (!m_encoderInit || m_width != src.width || m_height != src.height || m_pixelFormat != dst.fourcc)
+    if (!m_encoderInit || (m_width != src.width) || (m_height != src.height) || (m_pixelFormat != dst.fourcc))
     {
         switch (dst.fourcc)
         {
@@ -315,7 +302,7 @@ bool VideoCodec::initH265Encoder(int width, int height)
     // Open encoder
     m_h265Encoder = x265_encoder_open(&m_h265Param);
 
-    m_h265InternalBuffer = new uint8_t[width * height * 3];
+    m_h265InternalBuffer = new uint8_t[width * height * 3]; // Enough memory for any frame.
 
     return true;
 }
@@ -334,7 +321,7 @@ bool VideoCodec::encodeH265Frame(cr::video::Frame &src, cr::video::Frame &dst)
     m_h265PicIn->stride[1] = src.width / 2; // U stride
     m_h265PicIn->stride[2] = src.width / 2; // V stride
 
-    // Encode frame
+    // Encode frame.
     x265_nal *nal;
     uint32_t i_nal;
     if (x265_encoder_encode(m_h265Encoder, &nal, &i_nal, m_h265PicIn, &m_h265PicOut) < 0)
@@ -409,53 +396,40 @@ bool VideoCodec::encodeJpegFrame(cr::video::Frame &src, cr::video::Frame &dst)
 
 bool VideoCodec::initDecoder(cr::video::Frame src)
 {
+    auto codecType = AV_CODEC_ID_NONE;
     switch (src.fourcc)
     {
     case cr::video::Fourcc::H264:
-    {
-        m_decoder = avcodec_find_decoder(AV_CODEC_ID_H264);
-        if (!m_decoder) 
-        {
-            std::cout << "H.264 codec not found" << std::endl;
-            return false;
-        }
+        codecType = AV_CODEC_ID_H264;
         break;
-    }
     case cr::video::Fourcc::HEVC:
-    {
-        m_decoder = avcodec_find_decoder(AV_CODEC_ID_HEVC);
-        if (!m_decoder) 
-        {
-            std::cout << "H.265 codec not found" << std::endl;
-            return false;
-        }
+        codecType = AV_CODEC_ID_HEVC;
         break;
-    }
     case cr::video::Fourcc::JPEG:
-    {
-        m_decoder = avcodec_find_decoder(AV_CODEC_ID_MJPEG);
-        if (!m_decoder) 
-        {
-            std::cout << "JPEG codec not found" << std::endl;
-            return false;
-        }
+        codecType = AV_CODEC_ID_MJPEG;
         break;
-    }
     default:
         std::cout << "Invalid format" << std::endl;
+        return false;
+    }
+
+    m_decoder = avcodec_find_decoder(codecType);
+    if (!m_decoder) 
+    {
+        std::cout << "H.264 codec not found" << std::endl;
         return false;
     }
 
     codec_ctx = avcodec_alloc_context3(m_decoder);
     if (!codec_ctx) 
     {
-        fprintf(stderr, "Could not allocate video codec context\n");
+        std::cout << "Could not allocate video codec context" << std::endl;
         return false;
     }
 
     if (avcodec_open2(codec_ctx, m_decoder, NULL) < 0) 
     {
-        fprintf(stderr, "Could not open codec\n");
+        std::cout << "Could not open codec" << std::endl;
         avcodec_free_context(&codec_ctx);
         return false;
     }
@@ -463,7 +437,7 @@ bool VideoCodec::initDecoder(cr::video::Frame src)
     packet = av_packet_alloc();
     if (!packet) 
     {
-        fprintf(stderr, "Could not allocate packet\n");
+        std::cout << "Could not allocate packet" << std::endl;
         avcodec_free_context(&codec_ctx);
         return false;
     }
@@ -473,28 +447,28 @@ bool VideoCodec::initDecoder(cr::video::Frame src)
     frame = av_frame_alloc();
     if (!frame) 
     {
-        fprintf(stderr, "Could not allocate video frame\n");
+        std::cout << "Could not allocate video frame" << std::endl;
         av_packet_free(&packet);
         avcodec_free_context(&codec_ctx);
         return false;
     }
 
     sws_ctx = sws_getContext(
-    src.width, src.height, AV_PIX_FMT_YUV420P,    // Input width, height, and format (YUV420P)
-    src.width, src.height, AV_PIX_FMT_BGR24,      // Output width, height, and format (BGR24)
-    SWS_BICUBIC, NULL, NULL, NULL);       // Scaling algorithm (e.g., bicubic)
+                src.width, src.height, AV_PIX_FMT_YUV420P,    // Input width, height, and format (YUV420P)
+                src.width, src.height, AV_PIX_FMT_BGR24,      // Output width, height, and format (BGR24)
+                SWS_BICUBIC, NULL, NULL, NULL);       // Scaling algorithm (e.g., bicubic)
 
     return true;
 }
 
 bool VideoCodec::decodeFrame(cr::video::Frame &src, cr::video::Frame &dst)
 {
-
-    // Copy encoded frame to packet
+    // Copy encoded frame to packet.
     packet->data = src.data;
     packet->size = src.size;
     int  got_picture;
-    // Decode frame
+
+    // Decode frame.
     if (avcodec_decode_video2(codec_ctx, frame, &got_picture, packet) < 0) 
     {
         std::cout << "Error decoding frame" << std::endl;
@@ -516,5 +490,5 @@ bool VideoCodec::decodeFrame(cr::video::Frame &src, cr::video::Frame &dst)
         return true;
     }
 
-    return true;
+    return false;
 }
