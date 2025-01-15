@@ -171,9 +171,10 @@ private:
     /**
      * @brief Initialize decoder.
      * @param src Source frame.
+     * @param dstFourcc Destination frame FOURCC code.
      * @return TRUE if the decoder was initialized successfully or FALSE.
      */
-    bool initDecoder(cr::video::Frame frame);
+    bool initDecoder(cr::video::Frame frame, cr::video::Fourcc dstFourcc);
 
     /**
      * @brief Decode a frame using software decoder.

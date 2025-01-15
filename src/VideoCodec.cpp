@@ -148,7 +148,7 @@ bool VideoCodec::encode(cr::video::Frame &src, cr::video::Frame &dst)
 bool VideoCodec::decode(cr::video::Frame &src, cr::video::Frame &dst)
 {
     // Check if input frame is valid
-    if (src.fourcc != cr::video::Fourcc::H264 && src.fourcc != cr::video::Fourcc::HEVC && src.fourcc != cr::video::Fourcc::JPEG || dst.fourcc != cr::video::Fourcc::BGR24)
+    if ((src.fourcc != cr::video::Fourcc::H264 && src.fourcc != cr::video::Fourcc::HEVC && src.fourcc != cr::video::Fourcc::JPEG) || (dst.fourcc != cr::video::Fourcc::BGR24 && dst.fourcc != cr::video::Fourcc::RGB24))
     {
         std::cout << "Invalid pixel format" << std::endl;
         return false;
@@ -156,7 +156,7 @@ bool VideoCodec::decode(cr::video::Frame &src, cr::video::Frame &dst)
 
     if (!m_decoderInit)
     {
-        if (!initDecoder(src))
+        if (!initDecoder(src, dst.fourcc))
         {
             std::cout << "Failed to initialize decoder" << std::endl;
             return false;
@@ -394,7 +394,7 @@ bool VideoCodec::encodeJpegFrame(cr::video::Frame &src, cr::video::Frame &dst)
     return true;
 }
 
-bool VideoCodec::initDecoder(cr::video::Frame src)
+bool VideoCodec::initDecoder(cr::video::Frame src, cr::video::Fourcc dstFourcc)
 {
     auto codecType = AV_CODEC_ID_NONE;
     switch (src.fourcc)
@@ -453,9 +453,11 @@ bool VideoCodec::initDecoder(cr::video::Frame src)
         return false;
     }
 
+    auto destFormat = (dstFourcc == cr::video::Fourcc::BGR24) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_RGB24;
+
     sws_ctx = sws_getContext(
                 src.width, src.height, AV_PIX_FMT_YUV420P,    // Input width, height, and format (YUV420P)
-                src.width, src.height, AV_PIX_FMT_BGR24,      // Output width, height, and format (BGR24)
+                src.width, src.height, destFormat,      // Output width, height, and format (BGR24)
                 SWS_BICUBIC, NULL, NULL, NULL);       // Scaling algorithm (e.g., bicubic)
 
     return true;
