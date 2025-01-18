@@ -154,6 +154,13 @@ bool VideoCodec::decode(cr::video::Frame &src, cr::video::Frame &dst)
         return false;
     }
 
+    // Check if destination frame has enough memory
+    if (dst.width != src.width || dst.height != src.height)
+    {
+        dst.release();
+        dst = cr::video::Frame(src.width, src.height, dst.fourcc);
+    }
+
     if (!m_decoderInit)
     {
         if (!initDecoder(src, dst.fourcc))
